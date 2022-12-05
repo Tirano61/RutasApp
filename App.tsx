@@ -1,19 +1,28 @@
 import 'react-native-gesture-handler';
 import React from 'react'
-import { Text, View } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons'
-import { NavigationContainer } from '@react-navigation/native';
-import { StackNavigator } from './src/navigation/StackNavigatior';
 
-export const App = () => {
-  return (
-    <NavigationContainer>
-      <StackNavigator />
-    </NavigationContainer>
-      
+import { StackNavigator } from './src/navigation/StackNavigatior';
+import { PermissionProvider } from './src/context/PermissionsContext';
+
+
+
+const App = () => {
+    return (
    
-  )
+            <Appstates>
+                <StackNavigator />
+            </Appstates>
+        
+        
+    )
 }
 
+const Appstates = ( { children }: any ) => {
+    return(
+        <PermissionProvider>
+            { children }
+        </PermissionProvider>
+    )
+}
 
 export default App;
