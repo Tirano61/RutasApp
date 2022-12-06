@@ -13,7 +13,9 @@ export const HomeScreen = () => {
 
     return (
         <View style={styles.container}>
+            <Text style={styles.tituloText}>Es necesario el uso del GPS {'\n'} para usar la aplicación</Text>
             <TouchableOpacity
+            activeOpacity={0.7}
                 style={styles.buton}
                 onPress={  askLocationPermissions}
             >
@@ -34,13 +36,20 @@ const styles =StyleSheet.create({
         alignItems: 'center'
         
     },
+    tituloText:{
+        textAlign: 'center',
+        marginBottom: 20,
+        fontSize: 16,
+        color: 'black'
+    },
     buton:{
-        backgroundColor: 'black',
+        backgroundColor: '#032070',
         borderRadius: 20,
         width: 150,
         height: 40,
         justifyContent: 'center',
         alignItems: 'center',
+        marginBottom: 20
     }, 
     textButton:{
         color:'white', 

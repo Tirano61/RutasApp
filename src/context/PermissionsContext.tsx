@@ -1,7 +1,7 @@
-import React, { useState, createContext } from 'react'
-import { PERMISSIONS, PermissionStatus, request, } from 'react-native-permissions';
+import React, { useState, createContext, useEffect } from 'react'
+import { check, PERMISSIONS, PermissionStatus, request, openSettings } from 'react-native-permissions';
 
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
 
 
@@ -24,8 +24,19 @@ interface PermissionContextProps {
 export const PermissionContext = createContext( {} as PermissionContextProps ); //Definir lo que exporta
 
 export const PermissionProvider = ({ children }: any) => {
-    console.log('Entro en provider');
+  
     const [permissionsState, setPermissionsState] = useState(permissionInitState);
+
+    useEffect(() => {
+        AppState.addEventListener('change', state =>  {
+            if(state !== 'active') return;
+
+            checkLocationPermissions();
+            
+        })
+
+    }, [])
+    
 
     const askLocationPermissions = async() => {
         
@@ -37,14 +48,29 @@ export const PermissionProvider = ({ children }: any) => {
             permissionStatus = await request( PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION );
             
         }
-        console.log(permissionStatus);
+        
+        if(permissionStatus === 'blocked') {
+            openSettings();
+        }
         setPermissionsState({
             ...permissionsState,
             locationStatus: permissionStatus,  
         })
     }   
-    const checkLocationPermissions = () => {
+    const checkLocationPermissions = async() => {
+        let permissionStatus: PermissionStatus;
+        if (Platform.OS === 'ios') {
+            permissionStatus = await check( PERMISSIONS.IOS.LOCATION_WHEN_IN_USE );
+
+        }else{
+            permissionStatus = await check( PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION );
+            
+        }
         
+        setPermissionsState({
+            ...permissionsState,
+            locationStatus: permissionStatus,  
+        })
     }
 
     return (
