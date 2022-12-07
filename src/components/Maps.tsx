@@ -1,6 +1,6 @@
 
-import React, { useRef } from 'react'
-import MapView, {  PROVIDER_GOOGLE } from 'react-native-maps';
+import React, { useRef, useEffect, useState } from 'react'
+import MapView, {  Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useLocation } from '../hooks/useLocation';
 import { LoadingScreen } from '../screens/LoadingScreen';
 import { Fab } from './Fab';
@@ -9,22 +9,52 @@ import { Fab } from './Fab';
 
 export const Maps = () => {
 
+    const [shoePolylieState, setShowPolylieState] = useState(false);
     
-    const {hasLocation, initialPosition, getCurrentLocation} = useLocation();
+    const {hasLocationState, 
+        initialPositionState, 
+        getCurrentLocation,
+        followUserLocation, 
+        stopfollowUserLocation,
+        routeLinesState,
+        userLocationState} = useLocation();
 
     const mapViewRef =  useRef<MapView>();
+    const followingRef =  useRef<boolean>(true);
+
+    useEffect(() => {
+        followUserLocation();
+        return() => {
+            //cancelar el seguimiento
+            stopfollowUserLocation();
+        }
+    
+    }, [])
+    
+    useEffect(() => {
+        if ( !followingRef.current ) return;
+
+        const {latitude, longitude } = userLocationState;
+        mapViewRef.current?.animateCamera({
+            
+            center: {latitude: latitude, longitude: longitude}
+            
+        });
+    }, [userLocationState])
+    
 
     const centerPosition = async() => {
+        followingRef.current = true;
         const location = await getCurrentLocation();
         mapViewRef.current?.animateCamera({
             center:{
                 latitude: location.latitude,
-                longitude: location.longitud,
+                longitude: location.longitude,
             }
         })
     }
 
-    if(!hasLocation){
+    if(!hasLocationState){
         <LoadingScreen />
     }
 
@@ -36,12 +66,23 @@ export const Maps = () => {
                 provider={ PROVIDER_GOOGLE } // remove if not using Google Maps
                 style={{flex:1}}
                 initialRegion={{
-                    latitude: initialPosition.latitude,
-                    longitude: initialPosition.latitude,
+                    latitude: initialPositionState.latitude,
+                    longitude: initialPositionState.latitude,
                     latitudeDelta: 0.015,
                     longitudeDelta: 0.0121,
                 }}
+                onTouchStart={() => followingRef.current = false }
             >
+                {
+                    shoePolylieState && (
+                        <Polyline 
+                            coordinates={routeLinesState}
+                            strokeColor= 'black'
+                            strokeWidth={3}
+                        />
+                    )
+                }
+                
                 {/* <Marker
                     image={ require('../assets/custom-marker.png') }
                     coordinate={{
@@ -60,6 +101,15 @@ export const Maps = () => {
                     right: 20,
                 }}
             />
+            <Fab iconName='brush-outline' 
+                onPress={() => setShowPolylieState( !shoePolylieState )}
+                style={{
+                    position: 'absolute',
+                    bottom: 90,
+                    right: 20,
+                }}
+            />
+
         </>
     )
 }
